@@ -79,30 +79,6 @@ jobs:
           fi
           tar -xzf content.tgz --strip-components=1
           rm content.tgz
-          echo "::group:: update package.json git dependencies"
-          if [ -f package.json ]; then
-            # Check if there are dependencies that could be converted to git references
-            if jq -e '.dependencies' package.json > /dev/null 2>&1; then
-              echo "Found dependencies in package.json"
-              # Create a backup and update dependencies to use FireForkUPM git references where available
-              jq '
-                if .dependencies then
-                  .dependencies = (.dependencies | with_entries(
-                    if (.key | startswith("com.google")) then
-                      .value = "https://github.com/FireForkUPM/\(.key).git#" + .value
-                    else
-                      .
-                    end
-                  ))
-                else
-                  .
-                end
-              ' package.json > package.json.tmp && mv package.json.tmp package.json
-              echo "Updated package.json dependencies to use git references"
-              cat package.json | jq '.dependencies'
-            fi
-          fi
-          echo "::endgroup::"
           echo "::group:: setup git lfs tracking for large files"
           # Track common large Unity file types
           git lfs track "*.so"
